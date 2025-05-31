@@ -140,7 +140,7 @@ banned_users = DataManager.load_data(BANNED_FILE)
 async def send_welcome_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_info = f"👤 你的账户信息\n🆔 永久ID: <code>{user.id}</code>\n📛 用户名: <code>{user.username or '无'}</code>\n📝 名字: <code>{user.first_name}</code>\n\n"
-    commands = "┏━━━━━━━━━━━━━━━━━━━━┓\n┃      📋 可用命令     ┃\n┣━━━━━━━━━━━━━━━━━━━━┫\n┃/id <用户名> - 查询Roblox ID\n┃/kd <单号> - 查询快递\n┃/stray - 帮助信息\n┗━━━━━━━━━━━━━━━━━━━━┛\n"
+    commands = "┏━━━━━━━━━━━━━━━━━━━━┓\n┃      📋 可用命令     ┃\n┣━━━━━━━━━━━━━━━━━━━━┫\n┃/id <用户名> - 查询Roblox ID\n┃/kd <单号> - 查询快递\n┃/help - 帮助信息\n┗━━━━━━━━━━━━━━━━━━━━┛\n"
     if user.id == ADMIN_ID:
         commands += "\n👮 管理员命令:\n/ban <用户ID> - 封禁\n/unban <用户ID> - 解封"
     await update.message.reply_text(f"👋 你好 {user.first_name}！\n\n{user_info}{commands}", parse_mode='HTML')
@@ -179,7 +179,7 @@ def main():
     application = Application.builder().token(TOKEN).build()
     application.add_handlers([
         CommandHandler("start", send_welcome_message),
-        CommandHandler("stray", send_welcome_message),
+        CommandHandler("help", send_welcome_message),
         CommandHandler("id", handle_id_query),
         CommandHandler("kd", lambda u,c: u.message.reply_text(ExpressTracker.track_express(" ".join(c.args))) if c.args else ...,
         CallbackQueryHandler(handle_button_click, pattern="^(show|save)_")
