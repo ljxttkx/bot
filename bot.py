@@ -35,7 +35,7 @@ def keep_alive():
 
 # ========== 配置设置 ==========
 TOKEN = os.getenv('TOKEN')  # 从环境变量获取
-ADMIN_ID = 7748608249
+ADMIN_ID = int(os.getenv('ADMIN_ID', '7748608249'))  # 从环境变量获取管理员ID
 USERS_FILE = "users.json"
 BANNED_FILE = "banned.json"
 
@@ -322,7 +322,7 @@ def main():
     
     if ADMIN_ID:
         application.add_handlers([
-            CommandHandler("ban", lambda u,c: (banned_users.update({c.args[0]:True}), DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"⛔ 已封禁 {c.args[0]}")) if c.args else None,
+            CommandHandler("ban", lambda u,c: (banned_users.update({c.args[0]:True}), DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"⛔ 已封禁 {c.args[0]}")) if c.args else None),
             CommandHandler("unban", lambda u,c: (banned_users.pop(c.args[0], None), DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"✅ 已解封 {c.args[0]}")) if c.args and c.args[0] in banned_users else None)
         ])
     
